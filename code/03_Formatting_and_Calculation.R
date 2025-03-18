@@ -11,13 +11,19 @@ merge_vol <- merge %>%
   
   mutate(
     
-    acq_vol_img = as.numeric(substr(acq_vol_img, 1, nchar(acq_vol_img) - 3))
+    acq_vol_img = as.numeric(substr(acq_vol_img, 1, nchar(acq_vol_img) - 3)) 
     
   ) %>% 
   
   filter(
     
     !object_annotation_category %in% rmv
+    
+  ) %>% 
+  
+  mutate(
+    
+    object_annotation_category = forcats::fct_recode(object_annotation_category, rplc)
     
   )
 
@@ -30,61 +36,57 @@ rmv <- c(
   "pellet",
   "dark<detritus", 
   "unknown", 
-  "big cone", 
+  "unknown big cone", 
   "pollen", 
   "flake", 
   "copepod moult", 
   "rods", 
   "filament<detritus", 
   "bubble", 
-  "temporary<living"
+  "temporary<living", 
+  "detritus", 
+  "Lorica", 
+  "Unknowns", 
+  "frustule"
 )
 
 rplc <- c(
-  "Ciliophora" = "ciliate", 
-  "Thalassionema" = "diatom_pennate_chain", 
-  "flagellates-like" = "flagellates", 
-  "Chaetocers single" = "diatom_centric", 
-  "diatom-centric" = "diatom_centric", 
-  "Cyanobacteria<Bacteria" = "cyanobacteria", 
-  "ciliate-tintinnids" = "ciliate", 
-  "cyanobacteria-like" = "cyanobacteria", 
-  "Dinoflagellates" = "dinoflagellate", 
-  "diatom-centric-chain" = "diatom_centric_chain", 
-  "Nitzschia" = "diatom_pennate", 
-  "Entomoneis" = "diatom_pennate", 
-  "Achnanthes" = "diatom_pennate_chain", 
-  "Bacillaria" = "diatom_pennate_chain", 
-  "Corethron" = "diatom_centric", 
-  "Raphoneis" = "diatom_pennate", 
-  "ciliate-oval" = "ciliate", 
-  "diatom-pennate" = "diatom_pennate", 
-  "Bacillariophyceae" = "diatom", 
-  "Pleurosigmataceae" = "diatom_pennate", 
-  "Diploneis" = "diatom_penante", 
-  "Foraminifera" = "foraminiferan", 
-  "Asterionellopsis" = "diatom_pennate_chain", 
-  "Skeletonema" = "diatom_centric_chain", 
-  "ciliate-strombidiids" = "ciliate", 
-  "diatom-pennate-chain" = "diatom_pennate_chain", 
-  "Bacteriastrum<Chaetocerales" = "diatom_centric_chain", 
-  "Bacillariophyta" = "diatom", 
-  "Prorocentrum micans<Prorocentrum" = "dinoflagellate", 
-  "Rhizosolenia" = "diatom_centric", 
-  "Fragilariopsis" = "diatom_pennate_chain"
+  "ciliate" = "Ciliophora", 
+  "diatom.pennate.chain" = "Thalassionema", 
+  "flagellates" = "flagellates-like", 
+  "diatom.centric" = "Chaetoceros single", 
+  "cyanobacteria" = "Cyanobacteria<Bacteria", 
+  "ciliate" = "ciliate-tintinnids", 
+  "diatom.centric" = "diatom-centric",
+  "cyanobacteria" = "cyanobacteria-like", 
+  "dinoflagellate" = "Dinoflagellates", 
+  "diatom.centric.chain" = "diatom-centric-chain", 
+  "diatom.pennate" = "Nitzschia", 
+  "diatom.pennate" = "Entomoneis", 
+  "diatom.pennate.chain" = "Achnanthes", 
+  "diatom.pennate.chain" = "Bacillaria", 
+  "diatom.centric" = "Corethron", 
+  "diatom.pennate" = "Raphoneis", 
+  "ciliate" = "ciliate-oval", 
+  "diatom.pennate" = "diatom-pennate", 
+  "diatom" = "Bacillariophyceae", 
+  "diatom.pennate" = "Pleurosigmataceae", 
+  "diatom.penante" = "Diploneis", 
+  "foraminiferan" = "Foraminifera", 
+  "diatom.pennate.chain" = "Asterionellopsis", 
+  "diatom.centric.chain" = "Skeletonema", 
+  "ciliate" = "ciliate-strombidiids", 
+  "diatom.pennate.chain" = "diatom-pennate-chain", 
+  "diatom.centric.chain" = "Bacteriastrum<Chaetocerales", 
+  "diatom" = "Bacillariophyta", 
+  "dinoflagellate" = "Prorocentrum micans<Prorocentrum", 
+  "diatom.centric" = "Rhizosolenia", 
+  "diatom.pennate.chain" = "Fragilariopsis"  
 )
 
 colnames(freq)
 
 ##Grouping classifications into broad classes according to the rplc vector above
-
-merge_grpd <- merge_vol %>% 
-  
-  mutate(
-    
-    object_annotation_category = recode(.x = object_annotation_category, rplc)
-    
-    )
 
 
 
