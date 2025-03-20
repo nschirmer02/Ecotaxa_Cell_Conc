@@ -5,28 +5,6 @@ merge <- read.csv(
   
   )
 
-#Changing vol_img column from character to numerical, removing "ml"
-#Removing undesired object annotation categories (see details below)
-merge_vol <- merge %>%
-  
-  mutate(
-    
-    acq_vol_img = as.numeric(substr(acq_vol_img, 1, nchar(acq_vol_img) - 3)) 
-    
-  ) %>% 
-  
-  filter(
-    
-    !object_annotation_category %in% rmv
-    
-  ) %>% 
-  
-  mutate(
-    
-    object_annotation_category = forcats::fct_recode(object_annotation_category, rplc)
-    
-  )
-
 ##Removing irrelevant columns
 #when annotating image data it is helpful to apply specific classifiers to images to improve the application of machine learning tools, 
 #as well as keeping track of trends in non-living objects; however, these classifiers serve no purpose to the study of living plankton
@@ -47,56 +25,117 @@ rmv <- c(
   "detritus", 
   "Lorica", 
   "Unknowns", 
-  "frustule"
+  "frustule", 
+  "dinoflagellate-cysts"
 )
 
-rplc <- c(
-  "ciliate" = "Ciliophora", 
-  "diatom.pennate.chain" = "Thalassionema", 
-  "flagellates" = "flagellates-like", 
-  "diatom.centric" = "Chaetoceros single", 
-  "cyanobacteria" = "Cyanobacteria<Bacteria", 
-  "ciliate" = "ciliate-tintinnids", 
-  "diatom.centric" = "diatom-centric",
-  "cyanobacteria" = "cyanobacteria-like", 
-  "dinoflagellate" = "Dinoflagellates", 
-  "diatom.centric.chain" = "diatom-centric-chain", 
-  "diatom.pennate" = "Nitzschia", 
-  "diatom.pennate" = "Entomoneis", 
-  "diatom.pennate.chain" = "Achnanthes", 
-  "diatom.pennate.chain" = "Bacillaria", 
-  "diatom.centric" = "Corethron", 
-  "diatom.pennate" = "Raphoneis", 
-  "ciliate" = "ciliate-oval", 
-  "diatom.pennate" = "diatom-pennate", 
-  "diatom" = "Bacillariophyceae", 
-  "diatom.pennate" = "Pleurosigmataceae", 
-  "diatom.penante" = "Diploneis", 
-  "foraminiferan" = "Foraminifera", 
-  "diatom.pennate.chain" = "Asterionellopsis", 
-  "diatom.centric.chain" = "Skeletonema", 
-  "ciliate" = "ciliate-strombidiids", 
-  "diatom.pennate.chain" = "diatom-pennate-chain", 
-  "diatom.centric.chain" = "Bacteriastrum<Chaetocerales", 
-  "diatom" = "Bacillariophyta", 
-  "dinoflagellate" = "Prorocentrum micans<Prorocentrum", 
-  "diatom.centric" = "Rhizosolenia", 
-  "diatom.pennate.chain" = "Fragilariopsis"  
+##Generating group-level class column
+#using the list below to generate a new column containing broader classifications for the data
+#to allow for group-level analysis. When new names are added input them utilizing the following template: 
+
+#object_annotation_category == "[Ecotaxa Classifier]" ~ "[Group Idenfication]"
+
+replace <- c(
+  object_annotation_category == "Ciliophora" ~ "ciliate", 
+  object_annotation_category == "Thalassionema" ~ "diatom.pennate.chain",
+  object_annotation_category == "flagellates-like" ~ "flagellates",
+  object_annotation_category == "Chaetoceros single" ~ "diatom.centric",
+  object_annotation_category == "Cyanobacteria<Bacteria" ~ "cyanobacteria",
+  object_annotation_category == "ciliate-tintinnids" ~ "ciliate",
+  object_annotation_category == "diatom-centric" ~ "diatom.centric",
+  object_annotation_category == "cyanobacteria-like" ~ "cyanobacteria",
+  object_annotation_category == "Dinoflagellates" ~ "dinoflagellate",
+  object_annotation_category == "diatom-centric-chain" ~ "diatom.centric.chain",
+  object_annotation_category == "Nitzschia" ~ "diatom.pennate", 
+  object_annotation_category == "Entomoneis" ~ "diatom.pennate",
+  object_annotation_category == "Achnanthes" ~ "diatom.pennate.chain",
+  object_annotation_category == "Bacillaria" ~ "diatom.pennate.chain",
+  object_annotation_category == "Corethron" ~ "diatom.centric",
+  object_annotation_category == "Raphoneis" ~ "diatom.pennate",
+  object_annotation_category == "ciliate-oval" ~ "ciliate",
+  object_annotation_category == "diatom-pennate" ~ "diatom.pennate",
+  object_annotation_category == "Bacillariophyceae" ~ "diatom",
+  object_annotation_category == "Pleurosigmataceae" ~ "diatom.pennate",
+  object_annotation_category == "Diploneis" ~ "diatom.penante", 
+  object_annotation_category == "Foraminifera" ~ "foraminiferan",
+  object_annotation_category == "Asterionellopsis" ~ "diatom.pennate.chain",
+  object_annotation_category == "Skeletonema" ~ "diatom.centric.chain",
+  object_annotation_category == "ciliate-strombidiids" ~ "ciliate",
+  object_annotation_category == "diatom-pennate-chain" ~ "diatom.pennate.chain",
+  object_annotation_category == "Bacteriastrum<Chaetocerales" ~ "diatom.centric.chain",
+  object_annotation_category == "Bacillariophyta" ~ "diatom",
+  object_annotation_category == "Prorocentrum micans<Prorocentrum" ~ "dinoflagellate",
+  object_annotation_category == "Rhizosolenia" ~ "diatom.centric", 
+  object_annotation_category == "Fragilariopsis" ~ "diatom.pennate.chain", 
+  object_annotation_category == "cyanobacteria-like filaments" ~ "cyanobacteria", 
+  object_annotation_category == "cyanobacteria-like" ~ "cyanobacteria"
 )
 
-colnames(freq)
-
-##Grouping classifications into broad classes according to the rplc vector above
-
-
-
-
+##Changing vol_img column from character to numerical, removing "ml"
+#Removing undesired object annotation categories (see details below)
+merge_vol <- merge %>%
+  
+  dplyr::mutate(
+    
+    acq_vol_img = as.numeric(substr(acq_vol_img, 1, nchar(acq_vol_img) - 3)) 
+    
+  ) %>% 
+  
+  dplyr::filter(
+    
+    !object_annotation_category %in% rmv
+    
+  ) %>% 
+  
+  dplyr::mutate(
+    
+    object_annotation_grouping = case_when(
+      object_annotation_category == "Ciliophora" ~ "ciliate", 
+      object_annotation_category == "Thalassionema" ~ "diatom.pennate.chain",
+      object_annotation_category == "flagellates-like" ~ "flagellates",
+      object_annotation_category == "Chaetoceros single" ~ "diatom.centric",
+      object_annotation_category == "Cyanobacteria<Bacteria" ~ "cyanobacteria",
+      object_annotation_category == "ciliate-tintinnids" ~ "ciliate",
+      object_annotation_category == "diatom-centric" ~ "diatom.centric",
+      object_annotation_category == "cyanobacteria-like" ~ "cyanobacteria",
+      object_annotation_category == "Dinoflagellates" ~ "dinoflagellate",
+      object_annotation_category == "diatom-centric-chain" ~ "diatom.centric.chain",
+      object_annotation_category == "Nitzschia" ~ "diatom.pennate", 
+      object_annotation_category == "Entomoneis" ~ "diatom.pennate",
+      object_annotation_category == "Achnanthes" ~ "diatom.pennate.chain",
+      object_annotation_category == "Bacillaria" ~ "diatom.pennate.chain",
+      object_annotation_category == "Corethron" ~ "diatom.centric",
+      object_annotation_category == "Raphoneis" ~ "diatom.pennate",
+      object_annotation_category == "ciliate-oval" ~ "ciliate",
+      object_annotation_category == "diatom-pennate" ~ "diatom.pennate",
+      object_annotation_category == "Bacillariophyceae" ~ "diatom",
+      object_annotation_category == "Pleurosigmataceae" ~ "diatom.pennate",
+      object_annotation_category == "Diploneis" ~ "diatom.penante", 
+      object_annotation_category == "Foraminifera" ~ "foraminiferan",
+      object_annotation_category == "Asterionellopsis" ~ "diatom.pennate.chain",
+      object_annotation_category == "Skeletonema" ~ "diatom.centric.chain",
+      object_annotation_category == "ciliate-strombidiids" ~ "ciliate",
+      object_annotation_category == "diatom-pennate-chain" ~ "diatom.pennate.chain",
+      object_annotation_category == "Bacteriastrum<Chaetocerotales" ~ "diatom.centric.chain",
+      object_annotation_category == "Bacillariophyta" ~ "diatom",
+      object_annotation_category == "Prorocentrum micans<Prorocentrum" ~ "dinoflagellate",
+      object_annotation_category == "Rhizosolenia" ~ "diatom.centric", 
+      object_annotation_category == "Fragilariopsis" ~ "diatom.pennate.chain", 
+      object_annotation_category == "cyanobacteria-like filaments" ~ "cyanobacteria", 
+      object_annotation_category == "cyanobacteria-like" ~ "cyanobacteria",
+      object_annotation_category == "ciliate-other" ~ "ciliate"
+                                           
+                                           )
+    
+  )
 
 ##Generating a frequency table from the raw data. The no. of images for 
 #count() to generate n column
 #mutate() populate a vol_img column from merge, changing to numeric, and matching to the sample_id
 #introduce site_date column to easily collapse replicates
 #pivot_wider() pivoting the data wider to show absences, calculating across easier than down
+#replace() to change all NA's generated by empty rows to 0
+
 freq <- merge_vol %>% 
   
   dplyr::count(
@@ -105,7 +144,7 @@ freq <- merge_vol %>%
     ) %>% 
   
   dplyr::mutate(
-    vol_img = merge_vol$acq_vol_img[match(sample_id, merge$sample_id)], 
+    vol_img = merge_vol$acq_vol_img[match(sample_id, merge_vol$sample_id)], 
     site_date = substr(sample_id, 1, 10)
     ) %>% 
   
@@ -118,21 +157,53 @@ freq <- merge_vol %>%
 
 ##calculating cell concentration
 #for most specific classifications
-spc_cell_conc <- freq %>%  
+spc_conc <- freq %>%  
   
-  group_by(site_date) %>% 
+  dplyr::group_by(site_date) %>% 
   
-  summarise(
+  dplyr::summarise(
     across(c(vol_img, Asterionellopsis:Corethron), sum)
   ) %>% 
   
-  mutate(across(Asterionellopsis:Corethron, ~ .x/(vol_img/1000)), 
+  dplyr::mutate(across(Asterionellopsis:Corethron, ~ .x/(vol_img/1000)), 
          across(Asterionellopsis:Corethron, round)
 )
 
 #for group-level classification
-grpd_cell_conc <- 
-##create group_id based on functional group associations
+
+grp_freq <- merge_vol %>% 
+  
+  dplyr::count(
+    sample_id, 
+    object_annotation_grouping
+  ) %>% 
+  
+  dplyr::mutate(
+    vol_img = merge_vol$acq_vol_img[match(sample_id, merge_vol$sample_id)], 
+    site_date = substr(sample_id, 1, 10)
+  ) %>% 
+  
+  tidyr::pivot_wider(
+    names_from = "object_annotation_grouping",
+    values_from = "n"
+  ) %>% 
+  
+  replace(is.na(.), 0)
+
+##calculating cell concentration
+#for most specific classifications
+grp_conc <- grp_freq %>%  
+  
+  dplyr::group_by(site_date) %>% 
+  
+  dplyr::summarise(
+    across(c(vol_img, ciliate:foraminiferan), sum)
+  ) %>% 
+  
+  dplyr::mutate(across(ciliate:foraminiferan, ~ .x/(vol_img/1000)), 
+         across(ciliate:foraminiferan, round)
+  )
+
 
 
 
